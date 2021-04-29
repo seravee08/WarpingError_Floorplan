@@ -1,0 +1,16 @@
+# Copyright 2021 Allvision IO, Inc.
+# author: ryan@allvision.io
+# usage: nmake /f Makefile.vc [ clean ]
+all: build/windows/warping_error.exe
+
+build/windows/warping_error.exe: warping_error.obj
+    if not exist build\windows mkdir /Q build\windows
+    link /out:build/windows/warping_error.exe /LIBPATH:"../3P/opencv/windows/x64/vc15/lib" opencv_world410.lib main.obj warping_error.obj
+    xcopy /Q /R /Y /D "..\3P\opencv\windows\x64\vc15\bin\opencv_world410.dll" build\windows
+    del /f *.obj
+
+warping_error.obj: warping_error.cpp warping_error.h main.cpp
+    cl /c /EHsc /I"../3P/opencv/windows/include" warping_error.cpp main.cpp
+
+clean:
+  del /Q build\windows\*
