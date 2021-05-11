@@ -3,7 +3,7 @@
 # usage: docker build -t <tag> -f <path/to/this/file>
 FROM ubuntu:18.04
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y libpng-dev python3 python3-pip libopencv-dev
+RUN apt-get update && apt-get install -y libpng-dev python3 python3-pip libopencv-dev libboost-dev
 RUN pip3 install --upgrade awscli
 WORKDIR /allvision/dev
 COPY ./ /allvision/dev
