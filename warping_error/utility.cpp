@@ -37,7 +37,7 @@ std::vector<std::vector<std::vector<cv::Point2f>>> Utility::read_geometry_OBJ(co
 	return geometry;
 }
 
-std::vector<std::vector<std::vector<cv::Point2f>>> Utility::read_geometry_JSON(const std::string& path_jsn, bool cvt2_meters) {
+std::vector<std::vector<std::vector<cv::Point2f>>> Utility::read_geometry_JSON(const std::string& path_jsn, const std::string& cvt2_units) {
 	boost::property_tree::ptree root;
 	boost::property_tree::read_json(path_jsn.c_str(), root);
 	// Read in header
@@ -77,10 +77,20 @@ std::vector<std::vector<std::vector<cv::Point2f>>> Utility::read_geometry_JSON(c
 							for (auto& subsubsubnode : subsubsubtree)
 								temp_.push_back(subsubsubnode.second.get_value<float>());
 							for (int j = 0; j < pt_num; j++)
-								if (cvt2_meters)
+								if (cvt2_units.compare(std::string("1inch")) == 0)
 									geometry[i][struct_idx].push_back(cv::Point2f(temp_[j * 2] / 0.3048 * 12, temp_[j * 2 + 1] / 0.3048 * 12));
-								else
+								else if (cvt2_units.compare(std::string("1cm")) == 0)
+									geometry[i][struct_idx].push_back(cv::Point2f(temp_[j * 2] * 100, temp_[j * 2 + 1] * 100));
+								else if (cvt2_units.compare(std::string("10cm")) == 0)
+									geometry[i][struct_idx].push_back(cv::Point2f(temp_[j * 2] * 10, temp_[j * 2 + 1] * 10));
+								else if (cvt2_units.compare(std::string("20cm")) == 0)
+									geometry[i][struct_idx].push_back(cv::Point2f(temp_[j * 2] * 5, temp_[j * 2 + 1] * 5));
+								else if (cvt2_units.compare(std::string("1m")) == 0)
 									geometry[i][struct_idx].push_back(cv::Point2f(temp_[j * 2], temp_[j * 2 + 1]));
+								else {
+									std::cout << "Invalid units request ..." << std::endl;
+									exit(1);
+								}
 							struct_idx++;
 						}
 					}
@@ -149,10 +159,10 @@ void Utility::draw_coord(
 	const int rows = img.rows;
 	const int cols = img.cols;
 	for (int i = 0; i < x1[index].size(); i++) {
-		int x1_ = int(std::floor(x1[index][i]));
-		int y1_ = int(std::floor(y1[index][i]));
-		int x2_ = int(std::ceil(x2[index][i]));
-		int y2_ = int(std::ceil(y2[index][i]));
+		int x1_ = int(std::rint(x1[index][i]));
+		int y1_ = int(std::rint(y1[index][i]));
+		int x2_ = int(std::rint(x2[index][i]));
+		int y2_ = int(std::rint(y2[index][i]));
 		if (x1_ < 0 || x1_ >= cols || x2_ < 0 || x2_ >= cols || y1_ < 0 || y1_ >= rows || y2_ < 0 || y2_ >= rows)
 			std::cout << "Invalid coordinates" << std::endl;
 		cv::line(img, cv::Point(x1_, y1_), cv::Point(x2_, y2_), color, thickness, cv::LINE_8);
@@ -164,48 +174,18 @@ cv::Mat Utility::plot_layers(
 	std::vector<std::vector<float>>& y1,
 	std::vector<std::vector<float>>& x2,
 	std::vector<std::vector<float>>& y2,
+	const int height,
+	const int width,
 	const int thickness,
 	const int index
 )
 {
 	/*index: indicator of which layer to draw, draw all layers if -1
 	*/
+	cv::Mat img(height, width, CV_8UC3, cv::Scalar(255, 255, 255));
 	const int layer_num = x1.size();
-	assert(layer_num >= 1);
+	if (layer_num == 0) return img;
 	assert(index < layer_num);
-
-	// ===== Decide curtain size =====
-	std::vector<float> x_min(layer_num * 2);
-	std::vector<float> y_min(layer_num * 2);
-	std::vector<float> x_max(layer_num * 2);
-	std::vector<float> y_max(layer_num * 2);
-	for (int i = 0; i < layer_num; i++) {
-		x_min[i * 2 + 0] = *std::min_element(x1[i].begin(), x1[i].end());
-		x_min[i * 2 + 1] = *std::min_element(x2[i].begin(), x2[i].end());
-		y_min[i * 2 + 0] = *std::min_element(y1[i].begin(), y1[i].end());
-		y_min[i * 2 + 1] = *std::min_element(y2[i].begin(), y2[i].end());
-	}
-	float x_shift = 100.0 - *std::min_element(x_min.begin(), x_min.end());
-	float y_shift = 100.0 - *std::min_element(y_min.begin(), y_min.end());
-	for (int i = 0; i < layer_num; i++) {
-		const int t = x1[i].size();
-		for (int j = 0; j < t; j++) {
-			x1[i][j] += x_shift;
-			x2[i][j] += x_shift;
-			y1[i][j] += y_shift;
-			y2[i][j] += y_shift;
-		}
-	}
-	for (int i = 0; i < layer_num; i++) {
-		x_max[i * 2 + 0] = *std::max_element(x1[i].begin(), x1[i].end());
-		x_max[i * 2 + 1] = *std::max_element(x2[i].begin(), x2[i].end());
-		y_max[i * 2 + 0] = *std::max_element(y1[i].begin(), y1[i].end());
-		y_max[i * 2 + 1] = *std::max_element(y2[i].begin(), y2[i].end());
-	}
-	int x_bound = int(std::ceil(*std::max_element(x_max.begin(), x_max.end()))) + 100;
-	int y_bound = int(std::ceil(*std::max_element(y_max.begin(), y_max.end()))) + 100;
-	cv::Mat img(y_bound, x_bound, CV_8UC3, cv::Scalar(255, 255, 255));
-
 	if (index == -1) {
 		std::vector<cv::Scalar> colors(layer_num);
 		colors[0] = cv::Scalar(0, 0, 0);
@@ -220,4 +200,112 @@ cv::Mat Utility::plot_layers(
 		draw_coord(img, x1, y1, x2, y2, color, thickness, index);
 	}
 	return img;
+}
+
+void Utility::determine_curtain_size_sync(
+	std::vector<std::vector<float>>& x1_1,
+	std::vector<std::vector<float>>& y1_1,
+	std::vector<std::vector<float>>& x2_1,
+	std::vector<std::vector<float>>& y2_1,
+	std::vector<std::vector<float>>& x1_2,
+	std::vector<std::vector<float>>& y1_2,
+	std::vector<std::vector<float>>& x2_2,
+	std::vector<std::vector<float>>& y2_2,
+	int& res_height,
+	int& res_width
+)
+{
+	/*index: indicator of which layer to draw, draw all layers if -1
+	*/
+	const int layer_num_1 = x1_1.size();
+	const int layer_num_2 = x1_2.size();
+
+	// ===== Decide curtain size =====
+	std::vector<float> x_1_min(layer_num_1 * 2, std::numeric_limits<float>::max());
+	std::vector<float> y_1_min(layer_num_1 * 2, std::numeric_limits<float>::max());
+	std::vector<float> x_1_max(layer_num_1 * 2, std::numeric_limits<float>::min());
+	std::vector<float> y_1_max(layer_num_1 * 2, std::numeric_limits<float>::min());
+	std::vector<float> x_2_min(layer_num_2 * 2, std::numeric_limits<float>::max());
+	std::vector<float> y_2_min(layer_num_2 * 2, std::numeric_limits<float>::max());
+	std::vector<float> x_2_max(layer_num_2 * 2, std::numeric_limits<float>::min());
+	std::vector<float> y_2_max(layer_num_2 * 2, std::numeric_limits<float>::min());
+
+	for (int i = 0; i < layer_num_1; i++) {
+		if (x1_1[i].size() > 0) {
+			x_1_min[i * 2 + 0] = *std::min_element(x1_1[i].begin(), x1_1[i].end());
+			x_1_min[i * 2 + 1] = *std::min_element(x2_1[i].begin(), x2_1[i].end());
+			y_1_min[i * 2 + 0] = *std::min_element(y1_1[i].begin(), y1_1[i].end());
+			y_1_min[i * 2 + 1] = *std::min_element(y2_1[i].begin(), y2_1[i].end());
+		}
+	}
+	for (int i = 0; i < layer_num_2; i++) {
+		if (x1_2[i].size() > 0) {
+			x_2_min[i * 2 + 0] = *std::min_element(x1_2[i].begin(), x1_2[i].end());
+			x_2_min[i * 2 + 1] = *std::min_element(x2_2[i].begin(), x2_2[i].end());
+			y_2_min[i * 2 + 0] = *std::min_element(y1_2[i].begin(), y1_2[i].end());
+			y_2_min[i * 2 + 1] = *std::min_element(y2_2[i].begin(), y2_2[i].end());
+		}
+	}
+
+	float x_1_min_v = std::numeric_limits<float>::max(), y_1_min_v = std::numeric_limits<float>::max();
+	float x_2_min_v = std::numeric_limits<float>::max(), y_2_min_v = std::numeric_limits<float>::max();
+	if (layer_num_1 > 0) { 
+		x_1_min_v = *std::min_element(x_1_min.begin(), x_1_min.end());
+		y_1_min_v = *std::min_element(y_1_min.begin(), y_1_min.end());
+	}
+	if (layer_num_2 > 0) {
+		x_2_min_v = *std::min_element(x_2_min.begin(), x_2_min.end());
+		y_2_min_v = *std::min_element(y_2_min.begin(), y_2_min.end());
+	}
+	float x_shift = 50.0 - std::min(x_1_min_v, x_2_min_v);
+	float y_shift = 50.0 - std::min(y_1_min_v, y_2_min_v);
+
+	for (int i = 0; i < layer_num_1; i++) {
+		const int t = x1_1[i].size();
+		for (int j = 0; j < t; j++) {
+			x1_1[i][j] += x_shift;
+			x2_1[i][j] += x_shift;
+			y1_1[i][j] += y_shift;
+			y2_1[i][j] += y_shift;
+		}
+	}
+	for (int i = 0; i < layer_num_2; i++) {
+		const int t = x1_2[i].size();
+		for (int j = 0; j < t; j++) {
+			x1_2[i][j] += x_shift;
+			x2_2[i][j] += x_shift;
+			y1_2[i][j] += y_shift;
+			y2_2[i][j] += y_shift;
+		}
+	}
+
+	for (int i = 0; i < layer_num_1; i++) {
+		if (x1_1[i].size() > 0) {
+			x_1_max[i * 2 + 0] = *std::max_element(x1_1[i].begin(), x1_1[i].end());
+			x_1_max[i * 2 + 1] = *std::max_element(x2_1[i].begin(), x2_1[i].end());
+			y_1_max[i * 2 + 0] = *std::max_element(y1_1[i].begin(), y1_1[i].end());
+			y_1_max[i * 2 + 1] = *std::max_element(y2_1[i].begin(), y2_1[i].end());
+		}
+	}
+	for (int i = 0; i < layer_num_2; i++) {
+		if (x1_2[i].size() > 0) {
+			x_2_max[i * 2 + 0] = *std::max_element(x1_2[i].begin(), x1_2[i].end());
+			x_2_max[i * 2 + 1] = *std::max_element(x2_2[i].begin(), x2_2[i].end());
+			y_2_max[i * 2 + 0] = *std::max_element(y1_2[i].begin(), y1_2[i].end());
+			y_2_max[i * 2 + 1] = *std::max_element(y2_2[i].begin(), y2_2[i].end());
+		}
+	}
+
+	float x_1_max_v = std::numeric_limits<float>::min(), y_1_max_v = std::numeric_limits<float>::min();
+	float x_2_max_v = std::numeric_limits<float>::min(), y_2_max_v = std::numeric_limits<float>::min();
+	if (layer_num_1 > 0) {
+		x_1_max_v = *std::max_element(x_1_max.begin(), x_1_max.end());
+		y_1_max_v = *std::max_element(y_1_max.begin(), y_1_max.end());
+	}
+	if (layer_num_2 > 0) {
+		x_2_max_v = *std::max_element(x_2_max.begin(), x_2_max.end());
+		y_2_max_v = *std::max_element(y_2_max.begin(), y_2_max.end());
+	}
+	res_width  = int(std::ceil(std::max(x_1_max_v, x_2_max_v))) + 50;
+	res_height = int(std::ceil(std::max(y_1_max_v, y_2_max_v))) + 50;
 }

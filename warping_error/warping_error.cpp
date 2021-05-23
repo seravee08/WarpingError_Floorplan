@@ -13,7 +13,8 @@ cv::Mat Warping_error::python2mat_vector_uchar(
 	const int width,
 	std::vector<int>& data)
 {
-	assert(data.size() == static_cast<size_t>(height * width));
+	const int size = data.size();
+	assert(size == height * width);
 	cv::Mat image(height, width, CV_32SC1, &data.begin()[0]);
 	return image;
 }
@@ -75,8 +76,8 @@ int Warping_error::compute_warping_error(
 {
 	cv::Mat img_o = LSTAR.clone();
 	cv::Mat img_d = T.clone();
-	if (img_o.channels() == 3) cv::cvtColor(img_o, img_o, cv::COLOR_BGR2GRAY);
-	if (img_d.channels() == 3) cv::cvtColor(img_d, img_d, cv::COLOR_BGR2GRAY);
+	if (img_o.channels() == 3) cv::cvtColor(img_o, img_o, CV_BGR2GRAY);
+	if (img_d.channels() == 3) cv::cvtColor(img_d, img_d, CV_BGR2GRAY);
 	const int rows = img_o.rows;
 	const int cols = img_o.cols;
 	assert(rows == img_d.rows && cols == img_d.cols);
@@ -86,7 +87,7 @@ int Warping_error::compute_warping_error(
 	cv::absdiff(img_o, img_d, img_diff);
 	cv::findNonZero(img_diff, nonZeroCoord);
 	std::set<std::pair<int, int>> diff_coord;
-	for (int i = 0; i < static_cast<int>(nonZeroCoord.total()); i++)
+	for (int i = 0; i < nonZeroCoord.total(); i++)
 		diff_coord.insert(std::pair<int, int>(nonZeroCoord.at<cv::Point>(i).x, nonZeroCoord.at<cv::Point>(i).y));
 
 	// ===== Find initial simple points
@@ -141,7 +142,7 @@ int Warping_error::compute_warping_error_python(
 	cv::absdiff(img_o, img_d, img_diff);
 	cv::findNonZero(img_diff, nonZeroCoord);
 	std::set<std::pair<int, int>> diff_coord;
-	for (int i = 0; i < static_cast<int>(nonZeroCoord.total()); i++)
+	for (int i = 0; i < nonZeroCoord.total(); i++)
 		diff_coord.insert(std::pair<int, int>(nonZeroCoord.at<cv::Point>(i).x, nonZeroCoord.at<cv::Point>(i).y));
 
 	// ===== Find initial simple points

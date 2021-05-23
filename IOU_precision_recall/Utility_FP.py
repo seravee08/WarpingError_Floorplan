@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
 import cv2
 
 class Utility_FP(object):
@@ -74,3 +80,14 @@ class Utility_FP(object):
             return None
         else:
             return img[y:b+1, x:r+1]
+        
+    @staticmethod
+    def pairwise_distance(x1, y1, x2, y2):
+        num1 = len(x1)
+        num2 = len(x2)
+        cost_matrix = np.ones((num1, num2), dtype=np.float32) * sys.float_info.max
+        for i in range(num1):
+            for j in range(num2):
+                cost_matrix[i][j] = (x1[i]-x2[j])*(x1[i]-x2[j])+(y1[i]-y2[j])*(y1[i]-y2[j])
+        return cost_matrix
+

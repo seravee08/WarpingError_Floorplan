@@ -21,7 +21,7 @@ public:
 
 	std::vector<std::vector<std::vector<cv::Point2f>>> read_geometry_JSON(
 		const std::string& path_jsn,
-		bool cvt2_meters
+		const std::string& cvt2_units
 	);
 
 	std::vector<std::vector<std::vector<cv::Point2f>>> cvt_geometry_format_obj2drw(
@@ -52,8 +52,23 @@ public:
 		std::vector<std::vector<float>>& y1,
 		std::vector<std::vector<float>>& x2,
 		std::vector<std::vector<float>>& y2,
+		const int height,
+		const int width,
 		const int thickness,
 		const int index
+	);
+
+	void determine_curtain_size_sync(
+		std::vector<std::vector<float>>& x1_1,
+		std::vector<std::vector<float>>& y1_1,
+		std::vector<std::vector<float>>& x2_1,
+		std::vector<std::vector<float>>& y2_1,
+		std::vector<std::vector<float>>& x1_2,
+		std::vector<std::vector<float>>& y1_2,
+		std::vector<std::vector<float>>& x2_2,
+		std::vector<std::vector<float>>& y2_2,
+		int& res_height,
+		int& res_width
 	);
 };
 
