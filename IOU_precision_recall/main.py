@@ -3,18 +3,13 @@
 
 # In[ ]:
 
+from .Topo_FP import Topo_FP
+from .FileIO_FP import FileIO_FP
+from .Viewer_FP import Viewer_FP
+from .Utility_FP import Utility_FP
+from .Conversion_DWG_FP import Conversion_DWG_FP
 
-# get_ipython().run_line_magic('run', 'Topo_FP.ipynb')
-# get_ipython().run_line_magic('run', 'FileIO_FP.ipynb')
-# get_ipython().run_line_magic('run', 'Viewer_FP.ipynb')
-# get_ipython().run_line_magic('run', 'Utility_FP.ipynb')
-# get_ipython().run_line_magic('run', 'Conversion_DWG_FP.ipynb')
-from . import Topo_FP
-from . import FileIO_FP
-from . import Viewer_FP
-from . import Utility_FP
-from . import Conversion_DWG_FP
-
+import sys
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
@@ -108,3 +103,5 @@ def main():
     results = compute_all(sys.argv[1], sys.argv[2])
     print(results)
 
+if __name__ == "__main__":
+    quit(main())

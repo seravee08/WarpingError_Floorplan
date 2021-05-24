@@ -6,6 +6,7 @@
 
 import struct
 import json
+import numpy as np
 
 class FileIO_FP(object):
     
