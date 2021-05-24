@@ -3,12 +3,13 @@
 
 # In[ ]:
 
+from .Topo_FP import Topo_FP
+from .FileIO_FP import FileIO_FP
+from .Viewer_FP import Viewer_FP
+from .Utility_FP import Utility_FP
+from .Conversion_DWG_FP import Conversion_DWG_FP
 
-get_ipython().run_line_magic('run', 'Topo_FP.ipynb')
-get_ipython().run_line_magic('run', 'FileIO_FP.ipynb')
-get_ipython().run_line_magic('run', 'Viewer_FP.ipynb')
-get_ipython().run_line_magic('run', 'Utility_FP.ipynb')
-get_ipython().run_line_magic('run', 'Conversion_DWG_FP.ipynb')
+import sys
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
@@ -86,12 +87,21 @@ def compute_Betti_error(path1, path2, patch_size, N):
     betti_error = Topo_FP.compute_betti_error_patch(img1, img2, 8, patch_size, N)
     return betti_error
 
-json_path1 = "E:/Data2/ArcGIS/Floor_CAD/Wenxuan/gt_json/01_OfficeLab_01_F1_floorplan.txt"
-json_path2 = "E:/Data2/ArcGIS/Floor_CAD/Wenxuan/user_json/01_OfficeLab_01_F1_floorplan.txt"
-precision, recall = compute_precision_recall(json_path1, json_path2, "1cm")
-iou = compute_room_IOU(json_path1, json_path2, "20cm", 100)
-betti_error = compute_Betti_error(json_path1, json_path2, 25, 500)
-print(precision, recall)
-print(iou)
-print(betti_error)
+def compute_all(gt, user, recall_thresh="1cm", iou_tresh="20cm"):
+    precision, recall = compute_precision_recall(gt, user, recall_thresh)
+    iou = compute_room_IOU(gt, user, iou_tresh, 100)
+    betti_error = compute_Betti_error(gt, user, 25, 500)
 
+    return {
+        'precision': precision,
+        'recall': recall,
+        'iou': iou,
+        'betti_error': betti_error,
+    }
+
+def main():
+    results = compute_all(sys.argv[1], sys.argv[2])
+    print(results)
+
+if __name__ == "__main__":
+    quit(main())

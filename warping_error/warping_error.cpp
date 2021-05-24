@@ -76,8 +76,8 @@ int Warping_error::compute_warping_error(
 {
 	cv::Mat img_o = LSTAR.clone();
 	cv::Mat img_d = T.clone();
-	if (img_o.channels() == 3) cv::cvtColor(img_o, img_o, CV_BGR2GRAY);
-	if (img_d.channels() == 3) cv::cvtColor(img_d, img_d, CV_BGR2GRAY);
+	if (img_o.channels() == 3) cv::cvtColor(img_o, img_o, cv::COLOR_BGR2GRAY);
+	if (img_d.channels() == 3) cv::cvtColor(img_d, img_d, cv::COLOR_BGR2GRAY);
 	const int rows = img_o.rows;
 	const int cols = img_o.cols;
 	assert(rows == img_d.rows && cols == img_d.cols);
