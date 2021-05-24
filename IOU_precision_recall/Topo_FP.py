@@ -6,7 +6,8 @@
 
 import cv2
 from random import randrange
-get_ipython().run_line_magic('run', 'Utility_FP.ipynb')
+#get_ipython().run_line_magic('run', 'Utility_FP.ipynb')
+from . import Utility_FP
 
 class Topo_FP(object):
     
