@@ -11,7 +11,6 @@ from .Conversion_DWG_FP import Conversion_DWG_FP
 
 import sys
 import numpy as np
-from scipy.optimize import linear_sum_assignment
 
 def compute_precision_recall_helper(path1, path2, units, threshold):
     '''
