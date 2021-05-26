@@ -33,7 +33,7 @@ public:
 		std::set<std::pair<int, int>>& simple_points
 	);
 
-	int compute_warping_error(
+	float compute_warping_error(
 		const cv::Mat& LSTAR,
 		const cv::Mat& T,
 		bool display

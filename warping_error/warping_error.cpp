@@ -69,26 +69,29 @@ void Warping_error::update_simple_points(
 		}
 }
 
-int Warping_error::compute_warping_error(
+float Warping_error::compute_warping_error(
 	const cv::Mat& LSTAR,
 	const cv::Mat& T,
 	bool display)
 {
 	cv::Mat img_o = LSTAR.clone();
 	cv::Mat img_d = T.clone();
-	if (img_o.channels() == 3) cv::cvtColor(img_o, img_o, cv::COLOR_BGR2GRAY);
-	if (img_d.channels() == 3) cv::cvtColor(img_d, img_d, cv::COLOR_BGR2GRAY);
+	if (img_o.channels() == 3) cv::cvtColor(img_o, img_o, CV_BGR2GRAY);
+	if (img_d.channels() == 3) cv::cvtColor(img_d, img_d, CV_BGR2GRAY);
 	const int rows = img_o.rows;
 	const int cols = img_o.cols;
 	assert(rows == img_d.rows && cols == img_d.cols);
 
 	// ===== Find all difference coordinates
-	cv::Mat img_diff, nonZeroCoord;
+	cv::Mat img_diff, nonZeroCoord, nonZeroCoord_o, nonZeroCoord_d;
 	cv::absdiff(img_o, img_d, img_diff);
 	cv::findNonZero(img_diff, nonZeroCoord);
+	cv::findNonZero(img_o, nonZeroCoord_o);
+	cv::findNonZero(img_d, nonZeroCoord_d);
 	std::set<std::pair<int, int>> diff_coord;
 	for (int i = 0; i < nonZeroCoord.total(); i++)
 		diff_coord.insert(std::pair<int, int>(nonZeroCoord.at<cv::Point>(i).x, nonZeroCoord.at<cv::Point>(i).y));
+	int normalizer = rows * cols - nonZeroCoord_o.total() + rows * cols - nonZeroCoord_d.total();
 
 	// ===== Find initial simple points
 	std::set<std::pair<int, int>> simple_points;
@@ -120,7 +123,7 @@ int Warping_error::compute_warping_error(
 		if (!updated) break;
 		else updated = false;
 	}
-	return diff_coord.size();
+	return diff_coord.size() * 1.0 / normalizer;
 }
 
 int Warping_error::compute_warping_error_python(
