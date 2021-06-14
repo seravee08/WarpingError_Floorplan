@@ -6,11 +6,7 @@
 
 import cv2
 from random import randrange
-import numpy as np
-import sys
-from scipy.optimize import linear_sum_assignment
-
-from .Utility_FP import Utility_FP
+get_ipython().run_line_magic('run', 'Utility_FP.ipynb')
 
 class Topo_FP(object):
     
@@ -62,7 +58,6 @@ class Topo_FP(object):
         img2[img2 != 255] = 0
         cnt1, hry1, red1 = Utility_FP.compute_bnd_red_cv(img1, 0, 255, 8)
         cnt2, hry2, red2 = Utility_FP.compute_bnd_red_cv(img2, 0, 255, 8)
-
         ind1 = []
         ind2 = []
         num1 = 0
@@ -75,9 +70,6 @@ class Topo_FP(object):
             if np.sum(red2[1] == i) >= area_threshold:
                 num2 = num2 + 1
                 ind2.append(i)
-        if num1 == 0 or num2 == 0:
-            return 0.0
-
         cost_matrix = np.ones((num1, num2), dtype=np.float32) * sys.float_info.max
         num1 = 0
         for i in range(2, red1[0]):
@@ -96,7 +88,6 @@ class Topo_FP(object):
                             cost_matrix[num1][num2] = 1/score
                         num2 = num2 + 1
                 num1 = num1 + 1
-  
         row_ind, col_ind = linear_sum_assignment(cost_matrix)
         total_intersection = 0
         total_union = 0
@@ -112,3 +103,4 @@ class Topo_FP(object):
             total_intersection = total_intersection + intersection
             total_union = total_union + union
         return total_intersection / total_union
+

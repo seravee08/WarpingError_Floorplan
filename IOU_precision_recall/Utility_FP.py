@@ -5,8 +5,7 @@
 
 
 import cv2
-import numpy as np
-import sys
+from sklearn.neighbors import NearestNeighbors
 
 class Utility_FP(object):
     
@@ -83,13 +82,23 @@ class Utility_FP(object):
         else:
             return img[y:b+1, x:r+1]
         
-    @staticmethod
-    def pairwise_distance(x1, y1, x2, y2):
+    @staticmethod    
+    def pairwise_distance(x1, y1, x2, y2, radius):
         num1 = len(x1)
         num2 = len(x2)
-        cost_matrix = np.ones((num1, num2), dtype=np.float32) * sys.float_info.max
+        set1 = [None] * num1
+        set2 = [None] * num2
         for i in range(num1):
-            for j in range(num2):
-                cost_matrix[i][j] = (x1[i]-x2[j])*(x1[i]-x2[j])+(y1[i]-y2[j])*(y1[i]-y2[j])
+            set1[i] = [x1[i], y1[i]]
+        for i in range(num2):
+            set2[i] = [x2[i], y2[i]]
+        set1 = np.array(set1)
+        set2 = np.array(set2)
+
+        cost_matrix = np.ones((num1, num2), dtype=np.float32) * sys.float_info.max
+        nbrs = NearestNeighbors(radius=radius).fit(set2)
+        rng = nbrs.radius_neighbors(set1)
+        for i in range(num1):
+            cost_matrix[i, rng[1][i]] = rng[0][i]
         return cost_matrix
 
