@@ -18,7 +18,7 @@ def compute_precision_recall_helper(path1, path2, units, threshold):
     @path2: path to generated jason file
     @units: length of each pixel, has to be "1cm"
     @threshold: threshold to match the points, in cm, 
-     pass in 2, 5, 10 as thresholds corresponding to 2, 5, 10 cm
+     pass in 5, 10, 20 as thresholds corresponding to 5, 10, 20 cm
     '''
     geo1 = FileIO_FP.read_geometry_JSON(path1, "1cm")
     geo2 = FileIO_FP.read_geometry_JSON(path2, "1cm")
@@ -44,9 +44,9 @@ def compute_precision_recall(path1, path2, units):
     if units != "1cm":
         print("Invalid pixel length, has to be 1cm")
         sys.exit()
-    p1, r1 = compute_precision_recall_helper(path1, path2, units, 2)
-    p2, r2 = compute_precision_recall_helper(path1, path2, units, 5)
-    p3, r3 = compute_precision_recall_helper(path1, path2, units, 10)
+    p1, r1 = compute_precision_recall_helper(path1, path2, units, 5)
+    p2, r2 = compute_precision_recall_helper(path1, path2, units, 10)
+    p3, r3 = compute_precision_recall_helper(path1, path2, units, 20)
     return [p1, p2, p3], [r1, r2, r3]
 
 def compute_room_IOU(path1, path2, units, area_threshold):
